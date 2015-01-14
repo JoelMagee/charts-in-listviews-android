@@ -1,0 +1,38 @@
+# built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# generated files
+bin
+gen
+
+# Gradle
+.gradle
+build
+
+# local configuration file (sdk path, etc)
+local.properties
+
+# Eclipse
+.classpath
+.project
+.metadata
+proguard
+
+# Android Studio
+.idea
+*.iml
+
+# Mac OS X clutter
+*.DS_Store
+
+# Windows clutter
+Thumbs.db
+
+# ShinobiCharts library - Ignore library files
+shinobichartsandroidlibrary
+*.jar
+*.so

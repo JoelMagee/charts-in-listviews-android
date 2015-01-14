@@ -1,0 +1,8 @@
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/list"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentTop="true"
+    android:scrollbarStyle="outsideInset"
+    android:fastScrollAlwaysVisible="true" /> <!-- Keep fastscroll active as a method of navigating the list with gestures on the charts -->
