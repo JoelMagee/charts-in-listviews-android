@@ -1,5 +1,5 @@
 #ShinobiCharts in ListViews - Part 1 (Java)#
-This simple app demonstrates how to efficiently include our charts in a standard ListView. There's an accompanying [blog post](http://www.shinobicontrols.com/blog).
+This simple app demonstrates how to efficiently include our charts in a standard ListView. There's an accompanying [blog post](http://www.shinobicontrols.com/blog/posts/2015/01/21/charts-in-listviews-part-1-displaying-charts).
 
 <p align="center">
   <img src="screenshot.png?raw=true" alt="Screenshot" />
