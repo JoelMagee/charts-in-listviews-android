@@ -4,7 +4,7 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "com.example.jmagee.chartlist"
+        applicationId "com.example.jmagee.chartlistv2"
         minSdkVersion 9
         targetSdkVersion 21
         versionCode 1

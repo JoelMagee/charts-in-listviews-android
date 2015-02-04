@@ -1,4 +1,4 @@
-package com.example.jmagee.chartlist;
+package com.example.jmagee.chartlistv2;
 
 import android.app.ListActivity;
 import android.os.Bundle;
@@ -47,8 +47,9 @@ public class ChartListActivity extends ListActivity {
             dataAdapters.add(createDataAdapter());
         }
 
-        // Create a list adapter to populate the ListView and set it
-        ChartArrayAdapter adapter = new ChartArrayAdapter(this, R.layout.list_item, dataAdapters);
+        // Create a list adapter to populate the ListView and set it - in production code we would
+        // keep the ListView separate from the adapter but we have passed it in for simplicity
+        ChartArrayAdapter adapter = new ChartArrayAdapter(this, R.layout.list_item, dataAdapters, getListView());
         setListAdapter(adapter);
     }
 
@@ -56,7 +57,7 @@ public class ChartListActivity extends ListActivity {
         DataAdapter<Integer, Integer> dataAdapter = new SimpleDataAdapter<Integer, Integer>();
 
         // Create the DataPoints for your DataAdapter with an incrementing x value and a bounded, random y value
-        for(int i = 0; i < NUMBER_OF_DATAPOINTS; i++) {
+        for(int i = 0; i<NUMBER_OF_DATAPOINTS; i++) {
             dataAdapter.add(new DataPoint<Integer, Integer>(i, (int) (Math.floor(Math.random() * Y_AXIS_RANGE))));
         }
 
