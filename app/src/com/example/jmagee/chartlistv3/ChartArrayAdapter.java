@@ -19,15 +19,15 @@ import java.util.List;
 
 /**
  * Created by Joel Magee on 06/11/2014.
- * <p/>
+ *
  * Copyright (C) 2015 Scott Logic
- * <p/>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,7 +40,7 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter<Integer, Integer
     private List<DataAdapter<Integer, Integer>> values;
     private LayoutInflater inflater;
     private NumberRange yAxisRange;
-    private NumberRange currentRange;
+    private NumberRange currentXRange;
     private ListView listView;
 
     // Initialise constants
@@ -54,7 +54,7 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter<Integer, Integer
         this.values = values;
         this.listView = listView;
         this.yAxisRange = new NumberRange(0.0, Y_AXIS_RANGE + PADDING);
-        this.currentRange = new NumberRange(0.0, X_AXIS_RANGE);
+        this.currentXRange = new NumberRange(0.0, X_AXIS_RANGE);
 
         // get the LayoutInflater in the Constructor because we only need to get it once
         this.inflater = LayoutInflater.from(context);
@@ -91,7 +91,8 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter<Integer, Integer
         if (shinobiChart.getXAxis() == null) {
             NumberAxis xAxis = createXAxis();
             shinobiChart.setXAxis(xAxis);
-            shinobiChart.setYAxis(new NumberAxis(yAxisRange));
+			NumberAxis yAxis = new NumberAxis(yAxisRange);
+            shinobiChart.setYAxis(yAxis);
         }
 
         // If the chart doesn't have a line series then add one
@@ -109,7 +110,7 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter<Integer, Integer
         shinobiChart.setOnAxisRangeChangeListener(this);
 
         // Set the X axis displayed range to the current range so that we can't see the full data range
-        ((NumberAxis) shinobiChart.getXAxis()).requestCurrentDisplayedRange(currentRange.getMinimum(), currentRange.getMaximum(), false, false);
+        ((NumberAxis) shinobiChart.getXAxis()).requestCurrentDisplayedRange(currentXRange.getMinimum(), currentXRange.getMaximum(), false, false);
 
         return convertView;
     }
@@ -118,19 +119,19 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter<Integer, Integer
     public void onAxisRangeChange(Axis<?, ?> axis) {
         // Only do this for events in which the axis has been changed by a gesture or the momentum from the gesture
         if (axis.getMotionState() == Axis.MotionState.GESTURE || axis.getMotionState() == Axis.MotionState.MOMENTUM) {
-            this.currentRange = (NumberRange) axis.getCurrentDisplayedRange();
+            this.currentXRange = (NumberRange) axis.getCurrentDisplayedRange();
 
-            int start = listView.getFirstVisiblePosition();
-            int end = listView.getLastVisiblePosition();
+            int start = this.listView.getFirstVisiblePosition();
+            int end = this.listView.getLastVisiblePosition();
             ViewHolder holder;
             // Iterate through the row views currently visible
             for (int i = start; i <= end; i++) {
                 // Get the Viewholder from each of the views
-                holder = (ViewHolder) listView.getChildAt(i - start).getTag();
+                holder = (ViewHolder) this.listView.getChildAt(i - start).getTag();
                 // Only call change the displayed range on the charts that aren't being moved
                 if (holder.chart.getShinobiChart() != axis.getChart()) {
                     // Change the currently displayed range of each of these charts to match the one being moved
-                    ((NumberAxis) holder.chart.getShinobiChart().getXAxis()).requestCurrentDisplayedRange(this.currentRange.getMinimum(), this.currentRange.getMaximum(), false, false);
+                    ((NumberAxis) holder.chart.getShinobiChart().getXAxis()).requestCurrentDisplayedRange(this.currentXRange.getMinimum(), this.currentXRange.getMaximum(), false, false);
                 }
             }
         }
