@@ -1,11 +1,13 @@
-package com.example.jmagee.chartlistv2;
+package com.example.jmagee.chartlistv3;
 
 import android.app.ListActivity;
 import android.os.Bundle;
 
 import com.shinobicontrols.charts.DataAdapter;
 import com.shinobicontrols.charts.DataPoint;
-import com.shinobicontrols.charts.SimpleDataAdapter;
+import com.shinobicontrols.charts.NumberAxis;
+import com.shinobicontrols.charts.NumberRange;
+import com.shinobicontrols.charts.ShinobiChart;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,12 +30,15 @@ import java.util.List;
  * limitations under the License.
  *
  */
-public class ChartListActivity extends ListActivity {
+public class ChartListActivity extends ListActivity implements Runnable {
+
+    private List<DataAdapter<Integer, Integer>> dataAdapters;
 
     // Initialise constants
     private static final int NUMBER_OF_CHARTS = 100;
     private static final int NUMBER_OF_DATAPOINTS = 200;
     private static final double Y_AXIS_RANGE = 10;
+    private static final int DELAY = 50;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,20 +46,19 @@ public class ChartListActivity extends ListActivity {
         setContentView(R.layout.activity_chart_list);
 
         // Create an ArrayList to store the DataAdapters for each chart
-        List<DataAdapter> dataAdapters = new ArrayList<DataAdapter>();
+        dataAdapters = new ArrayList<DataAdapter<Integer, Integer>>();
 
         for (int i = 0; i < NUMBER_OF_CHARTS; i++) {
             dataAdapters.add(createDataAdapter());
         }
 
-        // Create a list adapter to populate the ListView and set it - in production code we would
-        // keep the ListView separate from the adapter but we have passed it in for simplicity
+        // Create a list adapter to populate the ListView and set it
         ChartArrayAdapter adapter = new ChartArrayAdapter(this, R.layout.list_item, dataAdapters, getListView());
         setListAdapter(adapter);
     }
 
     private DataAdapter<Integer, Integer> createDataAdapter() {
-        DataAdapter<Integer, Integer> dataAdapter = new SimpleDataAdapter<Integer, Integer>();
+        DataAdapter<Integer, Integer> dataAdapter = new FireableDataAdapter<Integer, Integer>();
 
         // Create the DataPoints for your DataAdapter with an incrementing x value and a bounded, random y value
         for(int i = 0; i<NUMBER_OF_DATAPOINTS; i++) {
@@ -62,6 +66,41 @@ public class ChartListActivity extends ListActivity {
         }
 
         return dataAdapter;
+    }
+
+    private static class FireableDataAdapter<X, Y> extends DataAdapter<X, Y> {
+        public void fire() {
+            fireUpdateHandler();
+        }
+    }
+
+    @Override
+    public void run() {
+        // for each DataAdapter create a new DataPoint with an x value one greater than the previous and a bounded, random y value;
+        // then remove the first DataPoint in the adapter and finally
+        for (DataAdapter<Integer, Integer> dataAdapter : dataAdapters) {
+            dataAdapter.add(new DataPoint<Integer, Integer>(dataAdapter.get(dataAdapter.size() - 1).getX() + 1, (int) (Math.floor(Math.random() * Y_AXIS_RANGE))));
+            dataAdapter.remove(0);
+            ((FireableDataAdapter<Integer, Integer>) dataAdapter).fire();
+        }
+
+        int start = getListView().getFirstVisiblePosition();
+        int end = getListView().getLastVisiblePosition();
+        ChartArrayAdapter.ViewHolder viewHolder;
+
+        for (int i = start; i <= end; i++) {
+            viewHolder = (ChartArrayAdapter.ViewHolder) getListView().getChildAt(i - start).getTag();
+            ShinobiChart chart = viewHolder.chart.getShinobiChart();
+
+            NumberAxis xAxis = (NumberAxis) chart.getXAxis();
+            NumberRange xRange = (NumberRange) xAxis.getCurrentDisplayedRange();
+            NumberRange xDataRange = (NumberRange) xAxis.getDataRange();
+            final double delta = xDataRange.getMinimum() - xRange.getMinimum();
+            xAxis.requestCurrentDisplayedRange(xRange.getMinimum() + delta, xRange.getMaximum() + delta, false, false);
+        }
+
+        // Call this Runnable again after a delay
+        getListView().postDelayed(this, DELAY);
     }
 
     @Override
@@ -76,6 +115,9 @@ public class ChartListActivity extends ListActivity {
             viewHolder = (ChartArrayAdapter.ViewHolder) getListView().getChildAt(i - start).getTag();
             viewHolder.chart.onPause();
         }
+
+        // Prevent the Runnable from continuing to run, to avoid memory leaks
+        getListView().removeCallbacks(this);
     }
 
     @Override
@@ -90,5 +132,8 @@ public class ChartListActivity extends ListActivity {
             viewHolder = (ChartArrayAdapter.ViewHolder) getListView().getChildAt(i - start).getTag();
             viewHolder.chart.onResume();
         }
+
+        // Start the Runnable
+        run();
     }
 }

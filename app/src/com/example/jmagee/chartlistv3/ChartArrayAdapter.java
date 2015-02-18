@@ -1,4 +1,4 @@
-package com.example.jmagee.chartlistv2;
+package com.example.jmagee.chartlistv3;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -19,29 +19,28 @@ import java.util.List;
 
 /**
  * Created by Joel Magee on 06/11/2014.
- *
+ * <p/>
  * Copyright (C) 2015 Scott Logic
- *
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-public class ChartArrayAdapter extends ArrayAdapter<DataAdapter> implements ShinobiChart.OnAxisRangeChangeListener {
+public class ChartArrayAdapter extends ArrayAdapter<DataAdapter<Integer, Integer>> implements ShinobiChart.OnAxisRangeChangeListener {
 
     private int rowLayoutId;
-    private List<DataAdapter> values;
+    private List<DataAdapter<Integer, Integer>> values;
     private LayoutInflater inflater;
     private NumberRange yAxisRange;
-    private NumberRange currentXRange;
+    private NumberRange currentRange;
     private ListView listView;
 
     // Initialise constants
@@ -49,13 +48,13 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter> implements Shin
     private static final double X_AXIS_RANGE = 100;
     private static final double PADDING = 2;
 
-    public ChartArrayAdapter(Context context, int rowLayoutId, List<DataAdapter> values, ListView listView) {
+    public ChartArrayAdapter(Context context, int rowLayoutId, List<DataAdapter<Integer, Integer>> values, ListView listView) {
         super(context, rowLayoutId, values);
         this.rowLayoutId = rowLayoutId;
         this.values = values;
         this.listView = listView;
         this.yAxisRange = new NumberRange(0.0, Y_AXIS_RANGE + PADDING);
-        this.currentXRange = new NumberRange(0.0, X_AXIS_RANGE);
+        this.currentRange = new NumberRange(0.0, X_AXIS_RANGE);
 
         // get the LayoutInflater in the Constructor because we only need to get it once
         this.inflater = LayoutInflater.from(context);
@@ -92,8 +91,7 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter> implements Shin
         if (shinobiChart.getXAxis() == null) {
             NumberAxis xAxis = createXAxis();
             shinobiChart.setXAxis(xAxis);
-            NumberAxis yAxis = new NumberAxis(yAxisRange);
-            shinobiChart.setYAxis(yAxis);
+            shinobiChart.setYAxis(new NumberAxis(yAxisRange));
         }
 
         // If the chart doesn't have a line series then add one
@@ -111,7 +109,7 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter> implements Shin
         shinobiChart.setOnAxisRangeChangeListener(this);
 
         // Set the X axis displayed range to the current range so that we can't see the full data range
-        ((NumberAxis) shinobiChart.getXAxis()).requestCurrentDisplayedRange(currentXRange.getMinimum(), currentXRange.getMaximum(), false, false);
+        ((NumberAxis) shinobiChart.getXAxis()).requestCurrentDisplayedRange(currentRange.getMinimum(), currentRange.getMaximum(), false, false);
 
         return convertView;
     }
@@ -120,30 +118,32 @@ public class ChartArrayAdapter extends ArrayAdapter<DataAdapter> implements Shin
     public void onAxisRangeChange(Axis<?, ?> axis) {
         // Only do this for events in which the axis has been changed by a gesture or the momentum from the gesture
         if (axis.getMotionState() == Axis.MotionState.GESTURE || axis.getMotionState() == Axis.MotionState.MOMENTUM) {
-            this.currentXRange = (NumberRange) axis.getCurrentDisplayedRange();
+            this.currentRange = (NumberRange) axis.getCurrentDisplayedRange();
 
-            int start = this.listView.getFirstVisiblePosition();
-            int end = this.listView.getLastVisiblePosition();
+            int start = listView.getFirstVisiblePosition();
+            int end = listView.getLastVisiblePosition();
             ViewHolder holder;
             // Iterate through the row views currently visible
             for (int i = start; i <= end; i++) {
                 // Get the Viewholder from each of the views
-                holder = (ViewHolder) this.listView.getChildAt(i - start).getTag();
+                holder = (ViewHolder) listView.getChildAt(i - start).getTag();
                 // Only call change the displayed range on the charts that aren't being moved
                 if (holder.chart.getShinobiChart() != axis.getChart()) {
                     // Change the currently displayed range of each of these charts to match the one being moved
-                    ((NumberAxis) holder.chart.getShinobiChart().getXAxis()).requestCurrentDisplayedRange(this.currentXRange.getMinimum(), this.currentXRange.getMaximum(), false, false);
+                    ((NumberAxis) holder.chart.getShinobiChart().getXAxis()).requestCurrentDisplayedRange(this.currentRange.getMinimum(), this.currentRange.getMaximum(), false, false);
                 }
             }
         }
     }
 
     // Create a pannable X axis with momentum but don't allow it to bounce when panned to the edge
+    // Allow the visible range to be preserved when the chart is updated
     private NumberAxis createXAxis() {
         NumberAxis xAxis = new NumberAxis();
         xAxis.enableGesturePanning(true);
         xAxis.enableMomentumPanning(true);
         xAxis.enableBouncingAtLimits(false);
+        xAxis.setCurrentDisplayedRangePreservedOnUpdate(true);
         return xAxis;
     }
 

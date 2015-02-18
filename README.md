@@ -1,5 +1,5 @@
-#ShinobiCharts in ListViews - Part 2 (Java)#
-This simple app demonstrates how to efficiently include our charts in a standard ListView and to tie the panning gestures from one chart to all the charts. There's an accompanying [blog post](http://www.shinobicontrols.com/blog).
+#ShinobiCharts in ListViews (Java)#
+This simple app demonstrates how to efficiently include our charts in a standard ListView and to tie the panning gestures from one chart to all the charts. There's a series of [blog posts](http://www.shinobicontrols.com/blog/posts/2015/01/21/charts-in-listviews-part-1-displaying-charts) accompanying this project.
 
 <p align="center">
   <img src="screenshot.png?raw=true" alt="Screenshot" />
